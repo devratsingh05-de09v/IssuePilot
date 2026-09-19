@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="IssuePilot — AI-powered multimodal problem resolution.">
+<title>IssuePilot — AI Problem Resolution</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#050711;--panel:rgba(10,14,27,.84);--text:#f8fbff;--muted:#a5aec1;--dim:#657089;--line:rgba(139,92,246,.18);--purple:#8b5cf6;--cyan:#22d3ee;--pink:#f472b6;--green:#34d399;--yellow:#fbbf24}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--text);overflow-x:hidden;background:#050711}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,#000,transparent 88%);z-index:-2}
+body:after{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 18% 12%,rgba(139,92,246,.22),transparent 24%),radial-gradient(circle at 84% 25%,rgba(34,211,238,.12),transparent 22%),radial-gradient(circle at 50% 78%,rgba(244,114,182,.08),transparent 25%);z-index:-3}
+button,textarea{font:inherit}.app{min-height:100vh}
+nav{position:sticky;top:0;z-index:50;height:70px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(5,7,17,.72);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;padding:0 6%}
+.brand-wrap{display:flex;align-items:center;gap:11px}.brand-mark{width:35px;height:35px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(135deg,var(--purple),#4f46e5);box-shadow:0 0 28px rgba(139,92,246,.42);font-weight:950}.brand{font-size:20px;font-weight:900;letter-spacing:-.7px}.brand span{color:#8791a6}
+.status{display:flex;align-items:center;gap:8px;font-size:11px;color:#b7c0d0;padding:8px 12px;border:1px solid rgba(52,211,153,.16);border-radius:999px;background:rgba(52,211,153,.045)}.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 14px rgba(52,211,153,.95)}
+.hero{position:relative;max-width:1100px;margin:auto;padding:86px 20px 40px;text-align:center}.hero-orbit{position:absolute;left:50%;top:45px;width:510px;height:240px;transform:translateX(-50%);border:1px solid rgba(139,92,246,.12);border-radius:50%;box-shadow:0 0 80px rgba(139,92,246,.08) inset;pointer-events:none}.hero-orbit:after{content:"";position:absolute;width:8px;height:8px;left:11%;top:19%;border-radius:50%;background:var(--cyan);box-shadow:0 0 18px var(--cyan);animation:orbit 7s linear infinite}.hero-orbit:before{content:"";position:absolute;width:6px;height:6px;right:12%;bottom:18%;border-radius:50%;background:var(--pink);box-shadow:0 0 16px var(--pink);animation:orbit 9s linear reverse infinite}
+@keyframes orbit{50%{transform:translate(330px,100px)}100%{transform:translate(0,0)}} 
+.eyebrow{position:relative;display:inline-flex;align-items:center;gap:8px;padding:8px 13px;border-radius:999px;border:1px solid rgba(139,92,246,.3);background:rgba(139,92,246,.09);color:#d5c9ff;font-size:11px;font-weight:850;letter-spacing:.35px}.eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+h1{position:relative;margin:22px 0 0;font-size:clamp(46px,8vw,86px);line-height:.95;letter-spacing:-5px;font-weight:950;text-shadow:0 0 55px rgba(139,92,246,.12)}.hero-gradient{background:linear-gradient(105deg,#fff 5%,#c4b5fd 42%,#67e8f9 73%,#f9a8d4 100%);-webkit-background-clip:text;background-clip:text;color:transparent}.hero p{max-width:730px;margin:24px auto 0;color:var(--muted);font-size:16px;line-height:1.75}.flow{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:25px}.flow-pill{color:#c5ccda;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:7px 11px;font-size:10px;font-weight:800}.flow-arrow{color:#566177;align-self:center}
+.workspace{max-width:1050px;margin:15px auto 90px;padding:0 20px}.input-card,#result{position:relative;background:linear-gradient(180deg,rgba(15,20,36,.91),rgba(7,11,21,.92));border:1px solid rgba(255,255,255,.1);border-radius:25px;box-shadow:0 30px 100px rgba(0,0,0,.42);overflow:hidden}.input-card:before,#result:before{content:"";position:absolute;left:12%;right:12%;top:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--purple),var(--cyan),transparent);opacity:.8}.input-card{padding:29px;overflow:visible}.card-top,.input-card > textarea,.evidence-box,.input-footer,#loading,.error{position:relative;z-index:3}.card-top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:20px}.input-label{font-size:15px;font-weight:900}.input-subtitle{margin-top:5px;color:#6f7b91;font-size:11px}.ai-chip{padding:7px 10px;border-radius:9px;border:1px solid rgba(139,92,246,.2);background:rgba(139,92,246,.06);color:#c4b5fd;font-size:10px;font-weight:850;white-space:nowrap}
+textarea{width:100%;min-height:185px;resize:vertical;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:18px;color:var(--text);background:rgba(2,4,10,.58);font-size:15px;line-height:1.6;outline:none;transition:.2s}textarea::placeholder{color:#657089}textarea:focus{border-color:rgba(139,92,246,.65);box-shadow:0 0 0 4px rgba(139,92,246,.08),0 0 40px rgba(139,92,246,.08)}
+.evidence-box{margin-top:14px;padding:15px;border:1px dashed rgba(255,255,255,.15);border-radius:15px;background:rgba(255,255,255,.018)}.evidence-header{display:flex;justify-content:space-between;align-items:center;gap:15px}.evidence-title-row{display:flex;align-items:center;gap:9px}.evidence-icon{width:31px;height:31px;border-radius:9px;display:grid;place-items:center;background:rgba(34,211,238,.07);border:1px solid rgba(34,211,238,.16)}.evidence-hint{margin-top:4px;color:#657089;font-size:11px}.upload-button{padding:8px 12px;border:1px solid rgba(139,92,246,.28);border-radius:9px;background:rgba(139,92,246,.07);color:#d8d0ff;font-size:11px;font-weight:850;cursor:pointer}.upload-button:hover{background:rgba(139,92,246,.14);box-shadow:0 0 22px rgba(139,92,246,.1)}#evidencePreview{margin-top:12px}.evidence-file{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:11px;color:#cbd2de}.remove-file{border:0!important;background:transparent!important;color:#8c97aa!important;padding:4px 7px!important;margin:0!important;width:auto!important;cursor:pointer;font-size:10px}
+.input-footer{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:15px}.hint{color:#657089;font-size:11px}#diagnoseBtn{border:0;color:white;padding:13px 20px;border-radius:11px;font-size:12px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#8b5cf6,#4f46e5);box-shadow:0 0 30px rgba(99,102,241,.18),0 10px 25px rgba(0,0,0,.25);transition:.18s}#diagnoseBtn:hover{transform:translateY(-1px);box-shadow:0 0 42px rgba(139,92,246,.25),0 15px 32px rgba(0,0,0,.3)}#diagnoseBtn:disabled{opacity:.55;cursor:not-allowed;transform:none}#loading{display:none;margin-top:16px;padding:12px 14px;border:1px solid rgba(139,92,246,.14);border-radius:12px;color:#aeb7c5;background:rgba(139,92,246,.035);font-size:11px}.loader{display:inline-block;width:12px;height:12px;border:2px solid #3c465a;border-top-color:#c4b5fd;border-right-color:#67e8f9;border-radius:50%;animation:spin .8s linear infinite;margin-right:7px;vertical-align:-2px}@keyframes spin{to{transform:rotate(360deg)}}.error{display:none;margin-top:14px;padding:12px 13px;border-radius:11px;border:1px solid rgba(251,113,133,.2);background:rgba(251,113,133,.07);color:#fda4af;font-size:11px}
+#result{display:none;margin-top:23px;padding:29px}.result-header{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:22px}.result-kicker{color:#7e8aa0;text-transform:uppercase;letter-spacing:1.6px;font-size:9px;font-weight:900;margin-bottom:8px}.result-title{font-size:clamp(23px,4vw,31px);font-weight:950;letter-spacing:-1px}.badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.badge{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);color:#cbd2de;padding:7px 10px;border-radius:999px;font-size:10px;font-weight:850;white-space:nowrap}.section{padding-top:23px}.section h3{display:flex;align-items:center;gap:9px;margin:0 0 9px;font-size:12px}.section h3:before{content:"";width:6px;height:6px;border-radius:50%;background:#8b5cf6;box-shadow:0 0 12px #8b5cf6}.section p{margin:0;color:#aeb7c5;line-height:1.72;font-size:13px}ol,ul{margin:10px 0 0;padding-left:0;list-style:none}li{position:relative;margin-bottom:9px;padding:11px 13px 11px 38px;color:#aeb7c5;line-height:1.55;font-size:12px;background:rgba(255,255,255,.022);border:1px solid rgba(255,255,255,.07);border-radius:11px}ol{counter-reset:steps}ol li{counter-increment:steps}ol li:before{content:counter(steps);position:absolute;left:11px;top:10px;width:20px;height:20px;display:grid;place-items:center;border-radius:6px;background:rgba(139,92,246,.12);color:#c4b5fd;font-size:9px;font-weight:950}ul li:before{content:"?";position:absolute;left:12px;top:11px;color:#67e8f9;font-weight:950}#safety li:before{content:"!";color:#fbbf24}
+#caseStatus{margin-top:24px;padding:17px;border-radius:14px;background:linear-gradient(135deg,rgba(52,211,153,.055),rgba(34,211,238,.025))!important;border:1px solid rgba(52,211,153,.18)!important}
+.footer{text-align:center;color:#465168;font-size:10px;padding:0 20px 32px}.footer strong{color:#77839a}
+@media(max-width:650px){nav{padding:0 16px;height:64px}.status{padding:7px 9px;font-size:9px}.hero{padding:62px 18px 30px}.hero-orbit{width:330px;height:190px}h1{letter-spacing:-3px}.hero p{font-size:14px}.workspace{padding:0 13px}.input-card,#result{padding:20px;border-radius:19px}.card-top,.result-header{flex-direction:column}.badges{justify-content:flex-start}.input-footer{flex-direction:column;align-items:stretch}#diagnoseBtn{width:100%}.hint{text-align:center}.evidence-header{align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="hero-orbit"></div>
+
+<nav><div class="brand-wrap"><div class="brand-mark">✦</div><div class="brand">Issue<span>Pilot</span></div></div><div class="status"><div class="dot"></div>AI system ready</div></nav>
+<section class="hero"><div class="eyebrow"><span class="eyebrow-dot"></span>AI-powered problem resolution</div><h1>What’s <span class="hero-gradient">Broken</span><span class="question-mark">?</span></h1><p>Give IssuePilot the problem and the evidence. It turns messy symptoms into a clear diagnosis, targeted questions, and an actionable resolution path.</p><div class="flow"><span class="flow-pill">Problem</span><span class="flow-arrow">→</span><span class="flow-pill">Evidence</span><span class="flow-arrow">→</span><span class="flow-pill">AI diagnosis</span><span class="flow-arrow">→</span><span class="flow-pill">Resolution</span></div></section>
+<main class="workspace"><div class="input-card">
+<div class="nova-buddy" aria-label="Nova 2 Lite assistant">
+  <div class="nova-name">NOVA 2 LITE</div>
+  <div class="nova-bot">
+    <div class="nova-antenna"></div>
+    <div class="nova-head"><span class="nova-eye left"></span><span class="nova-eye right"></span><span class="nova-smile">⌣</span></div>
+    <div class="nova-body"><span class="nova-heart">♥</span></div>
+    <div class="nova-arm nova-arm-left"><span></span></div>
+    <div class="nova-arm nova-arm-right"><span></span></div>
+  </div>
+</div>
+<div class="card-top"><div><div><div class="input-label">Describe your problem</div><div class="input-subtitle">Tell IssuePilot what happened, what you expected, and what you see.</div></div><div class="ai-chip">NOVA 2 LITE · MULTIMODAL</div></div>
+<textarea id="problem" placeholder="Example: My laptop connects to Wi-Fi, but websites aren't loading..."></textarea>
+<div class="evidence-box"><div class="evidence-header"><div><div class="evidence-title-row"><div class="evidence-icon">📎</div><strong>Add evidence</strong></div><div class="evidence-hint">Screenshots and error files give the AI more context.</div></div><label for="evidenceInput" class="upload-button">+ Attach</label></div><input type="file" id="evidenceInput" accept="image/*,.txt,.log,.pdf" hidden><div id="evidencePreview"></div></div>
+<div class="input-footer"><div class="hint">Be specific. Error messages, symptoms, and screenshots help.</div><button id="diagnoseBtn">Investigate →</button></div><div id="loading"><span class="loader"></span>IssuePilot is analyzing your problem and evidence...</div><div id="error" class="error"></div></div>
+
+<section class="recommendations" aria-label="Popular recommendations">
+  <div class="recommendations-head">
+    <div>
+      <div class="recommendations-title"><span class="spark">✦</span> Popular recommendations</div>
+      <div class="recommendations-subtitle">Not sure what to write? Start with a common problem.</div>
+    </div>
+    <div class="recommendations-hint">Click a suggestion to use it ↓</div>
+  </div>
+
+  <div class="recommendation-grid">
+    <button class="recommendation-card rec-cyan" type="button" data-problem="My device is connected to Wi-Fi, but I don't have internet access.">
+      <span class="rec-icon">⌁</span>
+      <span class="rec-copy"><strong>No internet connection</strong><small>Connected to Wi-Fi but no internet access.</small></span>
+      <span class="rec-arrow">›</span>
+    </button>
+
+    <button class="recommendation-card rec-purple" type="button" data-problem="Some websites are not loading, but my internet connection appears to be working.">
+      <span class="rec-icon">◎</span>
+      <span class="rec-copy"><strong>Websites not loading</strong><small>Some pages don't open or keep timing out.</small></span>
+      <span class="rec-arrow">›</span>
+    </button>
+
+    <button class="recommendation-card rec-green" type="button" data-problem="An application on my computer is not working correctly or keeps showing an error.">
+      <span class="rec-icon">▣</span>
+      <span class="rec-copy"><strong>App not working</strong><small>An application crashes or shows an error.</small></span>
+      <span class="rec-arrow">›</span>
+    </button>
+
+    <button class="recommendation-card rec-pink" type="button" data-problem="I am getting a specific error message and I need help understanding and fixing it.">
+      <span class="rec-icon">!</span>
+      <span class="rec-copy"><strong>Error message</strong><small>Paste the exact error you see.</small></span>
+      <span class="rec-arrow">›</span>
+    </button>
+
+    <button class="recommendation-card rec-yellow" type="button" data-problem="My computer or application is very slow and keeps lagging.">
+      <span class="rec-icon">◌</span>
+      <span class="rec-copy"><strong>Slow performance</strong><small>My device is very slow or lagging.</small></span>
+      <span class="rec-arrow">›</span>
+    </button>
+
+    <button class="recommendation-card rec-blue" type="button" data-problem="I have another technical problem. Help me figure out what information is needed to diagnose it.">
+      <span class="rec-icon">?</span>
+      <span class="rec-copy"><strong>Something else</strong><small>Describe any other issue.</small></span>
+      <span class="rec-arrow">›</span>
+    </button>
+  </div>
+</section>
+
+<div id="result"><div class="result-header"><div><div class="result-kicker">Investigation complete</div><div class="result-title" id="resultTitle">Problem Analysis</div></div><div class="badges"><div class="badge" id="category">Category</div><div class="badge" id="severity">Severity</div></div></div>
+<div class="section"><h3>What we found</h3><p id="summary"></p></div><div class="section"><h3>Likely cause</h3><p id="cause"></p></div><div class="section"><h3>Resolution path</h3><ol id="steps"></ol></div><div class="section"><h3>Questions to narrow it down</h3><ul id="questions"></ul></div><div class="section"><h3>Safety notes</h3><ul id="safety"></ul></div></div></main>
+<div class="thanks-rail" aria-label="Project acknowledgements">
+  <div class="thanks-orb">✦</div>
+  <div class="thanks-card">
+    <div class="thanks-label">BUILT WITH GRATITUDE</div>
+    <div class="thanks-title">Powered by builders, cloud & community.</div>
+    <div class="thanks-copy">A small thank-you to <strong>AWS</strong> for the cloud resources and <strong>WeMakeDevs</strong> for creating a space where builders can ship.</div>
+    <div class="thanks-tags"><span>☁ AWS</span><span>⚡ WeMakeDevs</span><span>🚀 First Commit</span></div>
+  </div>
+</div>
+
+<style>
+/* --- recommendation cards --- */
+.recommendations{
+  position:relative;
+  margin:18px 0 24px;
+  padding:22px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:22px;
+  background:linear-gradient(145deg,rgba(13,19,35,.9),rgba(7,11,22,.88));
+  box-shadow:0 24px 70px rgba(0,0,0,.25);
+}
+.recommendations:before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:14%;
+  right:14%;
+  height:1px;
+  background:linear-gradient(90deg,transparent,#22d3ee,#8b5cf6,#f472b6,transparent);
+  opacity:.65;
+}
+.recommendations-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:20px;
+  margin-bottom:15px;
+}
+.recommendations-title{
+  font-size:14px;
+  font-weight:950;
+  letter-spacing:-.2px;
+}
+.spark{
+  color:#fbbf24;
+  text-shadow:0 0 14px rgba(251,191,36,.55);
+  margin-right:7px;
+}
+.recommendations-subtitle{
+  margin-top:5px;
+  color:#718098;
+  font-size:10px;
+}
+.recommendations-hint{
+  color:#68758c;
+  font-size:9px;
+  white-space:nowrap;
+}
+.recommendation-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.recommendation-card{
+  position:relative;
+  min-height:94px;
+  display:grid;
+  grid-template-columns:34px 1fr 14px;
+  align-items:center;
+  gap:10px;
+  padding:13px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:15px;
+  color:#f4f7ff;
+  background:rgba(255,255,255,.025);
+  text-align:left;
+  cursor:pointer;
+  transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease;
+  overflow:hidden;
+}
+.recommendation-card:after{
+  content:"";
+  position:absolute;
+  inset:auto -30px -45px auto;
+  width:100px;
+  height:100px;
+  border-radius:50%;
+  background:currentColor;
+  opacity:.035;
+  filter:blur(12px);
+}
+.recommendation-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(139,92,246,.4);
+  background:rgba(139,92,246,.06);
+  box-shadow:0 12px 32px rgba(0,0,0,.28),0 0 25px rgba(139,92,246,.07);
+}
+.rec-icon{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  font-size:17px;
+  font-weight:950;
+  border:1px solid currentColor;
+  background:rgba(255,255,255,.035);
+  text-shadow:0 0 12px currentColor;
+}
+.rec-copy{min-width:0}
+.rec-copy strong{
+  display:block;
+  font-size:11px;
+  line-height:1.25;
+}
+.rec-copy small{
+  display:block;
+  margin-top:5px;
+  color:#78859b;
+  font-size:9px;
+  line-height:1.4;
+}
+.rec-arrow{
+  color:#77849a;
+  font-size:21px;
+  transition:transform .18s ease,color .18s ease;
+}
+.recommendation-card:hover .rec-arrow{
+  transform:translateX(3px);
+  color:#c4b5fd;
+}
+.rec-cyan{color:#67e8f9}.rec-purple{color:#c4b5fd}.rec-green{color:#6ee7b7}
+.rec-pink{color:#f9a8d4}.rec-yellow{color:#fbbf24}.rec-blue{color:#93c5fd}
+
+@media(max-width:850px){
+  .recommendation-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:650px){
+  .recommendations{padding:17px;margin-top:14px}
+  .recommendations-head{align-items:flex-start;flex-direction:column;gap:5px}
+  .recommendations-hint{display:none}
+  .recommendation-grid{grid-template-columns:1fr}
+  .recommendation-card{min-height:78px}
+  .nova-buddy{right:18px;top:-61px;transform:scale(.82)}
+}
+</style>
+
+<style>
+/* --- final polish: NOVA buddy + safe acknowledgement placement --- */
+.input-card{position:relative}
+.hero h1{line-height:1.06;padding:0 0 8px;overflow:visible}
+.hero-gradient{display:inline-block;line-height:1.08;padding-bottom:2px}
+.question-mark{display:inline-block;color:#f0abff;margin-left:2px;line-height:1.08;filter:drop-shadow(0 0 14px rgba(244,114,182,.28))}
+.nova-buddy{position:absolute;right:34px;top:-74px;width:128px;height:92px;z-index:1;pointer-events:none;filter:drop-shadow(0 14px 24px rgba(0,0,0,.5));transform-origin:right bottom}
+.nova-name{position:absolute;left:5px;top:0;padding:4px 8px;border:1px solid rgba(103,232,249,.25);border-radius:999px;background:rgba(7,12,27,.92);color:#9eeeff;font-size:7px;letter-spacing:1.2px;font-weight:950;white-space:nowrap;box-shadow:0 0 18px rgba(34,211,238,.08)}
+.nova-bot{position:absolute;right:3px;bottom:0;width:72px;height:72px;animation:novaBob 2.6s ease-in-out infinite}
+.nova-antenna{position:absolute;left:34px;top:0;width:4px;height:13px;border-radius:9px;background:linear-gradient(#dffcff,#67e8f9);box-shadow:0 0 10px rgba(103,232,249,.7)}
+.nova-antenna:after{content:"";position:absolute;left:-3px;top:-4px;width:10px;height:10px;border-radius:50%;background:#c4b5fd;box-shadow:0 0 13px #c4b5fd;animation:novaBlink 1.8s infinite}
+.nova-head{position:absolute;left:13px;top:9px;width:50px;height:35px;border:2px solid #8be9ff;border-radius:15px 15px 18px 18px;background:linear-gradient(145deg,#eefcff 0%,#b8d7ee 48%,#7184a7 100%);box-shadow:inset 0 -5px 10px rgba(31,41,74,.25),0 0 20px rgba(34,211,238,.2)}
+.nova-head:before{content:"";position:absolute;inset:5px;border-radius:11px;background:#071022;border:1px solid rgba(103,232,249,.35)}
+.nova-eye{position:absolute;z-index:2;top:13px;width:6px;height:8px;border-radius:50%;background:#67e8f9;box-shadow:0 0 9px #67e8f9;animation:novaBlink 3.4s infinite}
+.nova-eye.left{left:16px}.nova-eye.right{right:16px}
+.nova-smile{position:absolute;z-index:2;left:21px;top:17px;color:#f9a8d4;font-size:11px;font-weight:900;transform:rotate(180deg)}
+.nova-body{position:absolute;left:21px;top:43px;width:34px;height:25px;border-radius:10px 10px 12px 12px;border:2px solid #8be9ff;background:linear-gradient(145deg,#dffbff,#8499bb);box-shadow:0 0 16px rgba(139,92,246,.16)}
+.nova-heart{position:absolute;left:12px;top:6px;color:#f9a8d4;font-size:9px;text-shadow:0 0 7px #f9a8d4;animation:novaHeart 1.8s ease-in-out infinite}
+.nova-arm{position:absolute;top:43px;width:20px;height:9px;border:2px solid #8be9ff;border-radius:9px;background:#9db1ca;transform-origin:90% 50%}
+.nova-arm-left{left:3px;transform:rotate(25deg)}.nova-arm-right{right:0;transform:rotate(-38deg);animation:novaWave .8s ease-in-out infinite alternate}
+.nova-arm span{position:absolute;right:-4px;top:-4px;width:9px;height:13px;border-radius:50%;border:2px solid #8be9ff;background:#b9d5e8}
+.nova-arm-left span{left:-4px;right:auto}
+.thanks-rail{position:relative;max-width:1050px;margin:42px auto 26px;padding:0 20px;display:flex;justify-content:center;pointer-events:none;clear:both}
+.thanks-card{pointer-events:auto;width:min(430px,100%);padding:16px 19px;border:1px solid rgba(139,92,246,.25);border-radius:18px;background:linear-gradient(135deg,rgba(18,20,39,.96),rgba(8,13,24,.96));box-shadow:0 18px 65px rgba(0,0,0,.38),0 0 55px rgba(139,92,246,.08);animation:floatCard 5s ease-in-out infinite}
+.thanks-orb{width:30px;height:30px;margin-right:-15px;margin-top:17px;z-index:2;display:grid;place-items:center;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#22d3ee);box-shadow:0 0 24px rgba(139,92,246,.4);font-weight:900;animation:pulseOrb 2.5s ease-in-out infinite}
+.thanks-label{font-size:8px;letter-spacing:1.6px;font-weight:950;color:#8b95a8}.thanks-title{margin-top:5px;font-size:14px;font-weight:900;color:#eef2ff}.thanks-copy{margin-top:7px;font-size:10px;line-height:1.6;color:#8995a9}.thanks-copy strong{color:#c4b5fd}.thanks-tags{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin-top:11px}.thanks-tags span{padding:5px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);font-size:8px;font-weight:850;color:#aeb7c5}
+@keyframes floatCard{50%{transform:translateY(-5px)}}@keyframes pulseOrb{50%{transform:scale(1.08);box-shadow:0 0 35px rgba(34,211,238,.35)}}
+@keyframes novaBob{50%{transform:translateY(-5px) rotate(1deg)}}@keyframes novaWave{from{transform:rotate(-42deg)}to{transform:rotate(-5deg)}}@keyframes novaBlink{0%,45%,100%{opacity:1}48%,52%{opacity:.2}}@keyframes novaHeart{50%{transform:scale(1.2)}}
+@media(max-width:850px){.nova-buddy{right:16px;top:-62px;transform:scale(.9);transform-origin:right bottom}}
+@media(max-width:650px){.nova-buddy{position:relative;right:auto;top:auto;margin:-6px 0 4px auto;width:110px;height:70px;transform:scale(.86);transform-origin:right center}.nova-name{right:67px;left:auto;top:10px}.nova-bot{right:0}.thanks-rail{margin:34px auto 24px;padding:0 13px}.thanks-orb{display:none}}
+</style>
+
+<div class="footer"><strong>IssuePilot</strong> · From problem to resolution · Built for First Commit</div>
+</div>
+<script>const diagnoseBtn =
+    document.getElementById("diagnoseBtn");
+
+const problemInput =
+    document.getElementById("problem");
+
+const loading =
+    document.getElementById("loading");
+
+const result =
+    document.getElementById("result");
+
+const errorBox =
+    document.getElementById("error");
+
+
+diagnoseBtn.addEventListener(
+    "click",
+    diagnoseProblem
+);
+
+
+async function diagnoseProblem() {
+
+    const problem = problemInput.value.trim();
+
+    if (!problem) {
+        showError("Please describe your problem first.");
+        return;
+    }
+
+    diagnoseBtn.disabled = true;
+    loading.style.display = "block";
+    result.style.display = "none";
+    errorBox.style.display = "none";
+
+    try {
+
+        // 1. Create a new IssuePilot case
+        const caseResponse = await fetch(
+            "/cases",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    problem: problem
+                })
+            }
+        );
+
+        const caseData = await caseResponse.json();
+
+        if (!caseResponse.ok || !caseData.success) {
+            throw new Error(
+                caseData.error || "Could not create case."
+            );
+        }
+
+        const caseId = caseData.case.case_id;
+
+        currentCaseId = caseId;
+
+        console.log("IssuePilot case created:", caseId);
+
+
+        // 2. Attach evidence to the case
+        if (selectedEvidence) {
+
+            const formData = new FormData();
+
+            formData.append(
+                "file",
+                selectedEvidence
+            );
+
+            const evidenceResponse = await fetch(
+                `/cases/${caseId}/evidence`,
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+            const evidenceData =
+                await evidenceResponse.json();
+
+            if (
+                !evidenceResponse.ok ||
+                !evidenceData.success
+            ) {
+                throw new Error(
+                    evidenceData.error ||
+                    "Evidence upload failed."
+                );
+            }
+
+            console.log(
+                "Evidence attached:",
+                evidenceData.evidence.filename
+            );
+        }
+
+
+        // 3. Ask IssuePilot to diagnose the case
+        const diagnosisResponse = await fetch(
+            `/cases/${caseId}/diagnose`,
+            {
+                method: "POST"
+            }
+        );
+
+        const diagnosisData =
+            await diagnosisResponse.json();
+
+        if (
+            !diagnosisResponse.ok ||
+            !diagnosisData.success
+        ) {
+            throw new Error(
+                diagnosisData.error ||
+                "Diagnosis failed."
+            );
+        }
+
+
+        // 4. Display diagnosis
+        displayDiagnosis(
+            diagnosisData.case.diagnosis
+        );
+
+
+        console.log(
+            "Case status:",
+            diagnosisData.case.status
+        );
+
+
+    } catch (error) {
+
+        showError(
+            "IssuePilot error: " +
+            error.message
+        );
+
+    } finally {
+
+        diagnoseBtn.disabled = false;
+        loading.style.display = "none";
+    }
+}
+
+
+function displayDiagnosis(data) {
+
+    document.getElementById(
+        "resultTitle"
+    ).textContent =
+        data.title ||
+        "Problem Analysis";
+
+
+    document.getElementById(
+        "category"
+    ).textContent =
+        "Category: " +
+        (data.category || "Unknown");
+
+
+    document.getElementById(
+        "severity"
+    ).textContent =
+        "Severity: " +
+        (data.severity || "Unknown");
+
+
+    document.getElementById(
+        "summary"
+    ).textContent =
+        data.summary ||
+        "No summary available.";
+
+
+    document.getElementById(
+        "cause"
+    ).textContent =
+        data.likely_cause ||
+        "Cause could not be determined.";
+
+
+    fillList(
+        document.getElementById("steps"),
+        data.next_steps
+    );
+
+
+    fillList(
+        document.getElementById("questions"),
+        data.questions
+    );
+
+
+    fillList(
+        document.getElementById("safety"),
+        data.safety_notes
+    );
+
+
+    // Remove an old status section if one exists
+    const oldStatus =
+        document.getElementById("caseStatus");
+
+    if (oldStatus) {
+        oldStatus.remove();
+    }
+
+
+    // Create status section
+    const statusBox =
+        document.createElement("div");
+
+    statusBox.id = "caseStatus";
+
+    statusBox.style.marginTop = "24px";
+    statusBox.style.padding = "16px";
+    statusBox.style.borderRadius = "12px";
+    statusBox.style.background = "#f8f9fb";
+    statusBox.style.border = "1px solid #e5e7eb";
+
+
+    const statusTitle =
+        document.createElement("strong");
+
+    statusTitle.textContent =
+        "IssuePilot Case Status";
+
+    statusBox.appendChild(statusTitle);
+
+
+    const statusText =
+        document.createElement("div");
+
+    statusText.style.marginTop = "8px";
+    statusText.textContent =
+        "● Guided fix — follow the recommended steps above.";
+
+    statusBox.appendChild(statusText);
+
+
+    // Resolve button
+    const resolveButton =
+        document.createElement("button");
+
+    resolveButton.textContent =
+        "Mark as Resolved";
+
+    resolveButton.style.marginTop = "14px";
+    resolveButton.style.padding = "10px 16px";
+    resolveButton.style.border = "none";
+    resolveButton.style.borderRadius = "9px";
+    resolveButton.style.cursor = "pointer";
+    resolveButton.style.fontWeight = "700";
+
+
+    resolveButton.addEventListener(
+        "click",
+        async function () {
+
+            if (!currentCaseId) {
+                alert("No active case found.");
+                return;
+            }
+
+
+            resolveButton.disabled = true;
+            resolveButton.textContent =
+                "Resolving...";
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `/cases/${currentCaseId}/resolve`,
+                        {
+                            method: "POST"
+                        }
+                    );
+
+
+                const resultData =
+                    await response.json();
+
+
+                if (
+                    !response.ok ||
+                    !resultData.success
+                ) {
+                    throw new Error(
+                        resultData.error ||
+                        "Could not resolve case."
+                    );
+                }
+
+
+                statusText.textContent =
+                    "✓ Resolved — this issue has been marked as resolved.";
+
+
+                resolveButton.textContent =
+                    "Resolved";
+
+
+                console.log(
+                    "Case resolved:",
+                    currentCaseId
+                );
+
+
+            } catch (error) {
+
+                resolveButton.disabled = false;
+
+                resolveButton.textContent =
+                    "Mark as Resolved";
+
+                alert(error.message);
+            }
+        }
+    );
+
+
+    statusBox.appendChild(resolveButton);
+
+
+    result.appendChild(statusBox);
+
+
+    result.style.display = "block";
+
+
+    result.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+
+}
+
+
+function fillList(element, items) {
+
+    element.innerHTML = "";
+
+
+    if (!items || items.length === 0) {
+
+        const li =
+            document.createElement("li");
+
+        li.textContent =
+            "None identified.";
+
+        element.appendChild(li);
+
+        return;
+    }
+
+
+    items.forEach(item => {
+
+        const li =
+            document.createElement("li");
+
+        li.textContent = item;
+
+        element.appendChild(li);
+
+    });
+
+}
+
+
+function showError(message) {
+
+    errorBox.textContent = message;
+
+    errorBox.style.display = "block";
+
+}
+const evidenceInput =
+    document.getElementById("evidenceInput");
+
+const evidencePreview =
+    document.getElementById("evidencePreview");
+
+let selectedEvidence = null;
+let currentCaseId = null;
+
+evidenceInput.addEventListener("change", function () {
+
+    const file = this.files[0];
+
+    if (!file) {
+        return;
+    }
+
+    selectedEvidence = file;
+
+    evidencePreview.innerHTML = "";
+
+    const fileBox =
+        document.createElement("div");
+
+    fileBox.className = "evidence-file";
+
+    const name =
+        document.createElement("span");
+
+    name.textContent =
+        "📎 " + file.name;
+
+    const remove =
+        document.createElement("button");
+
+    remove.className = "remove-file";
+
+    remove.textContent = "Remove";
+
+    remove.onclick = function () {
+
+        selectedEvidence = null;
+
+        evidenceInput.value = "";
+
+        evidencePreview.innerHTML = "";
+    };
+
+    fileBox.appendChild(name);
+
+    fileBox.appendChild(remove);
+
+    evidencePreview.appendChild(fileBox);
+});
+document.querySelectorAll(".recommendation-card").forEach(function(card) {
+    card.addEventListener("click", function() {
+        problemInput.value = card.dataset.problem || "";
+        problemInput.focus();
+        problemInput.dispatchEvent(new Event("input", { bubbles: true }));
+        window.scrollTo({
+            top: Math.max(0, problemInput.getBoundingClientRect().top + window.scrollY - 150),
+            behavior: "smooth"
+        });
+    });
+});
+</script>
+</body>
+</html>

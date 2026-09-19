@@ -1,0 +1,6 @@
+boto3
+botocore[crt]
+Flask
+Flask-Cors
+python-dotenv
+apig-wsgi
