@@ -358,6 +358,3 @@ AWS for the cloud infrastructure and AI services
 WeMakeDevs for creating the First Commit builder community
 > **Small problems. Clearer paths. Better resolutions.**
 ---
-License
-Add the project's chosen license before publishing the repository.
-If third-party assets, libraries, icons, illustrations or code are added, keep their required attribution and license information with the project.
