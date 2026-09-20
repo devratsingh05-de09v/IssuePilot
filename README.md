@@ -358,3 +358,6 @@ AWS for the cloud infrastructure and AI services
 WeMakeDevs for creating the First Commit builder community
 > **Small problems. Clearer paths. Better resolutions.**
 ---
+## 📄 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
